@@ -1,0 +1,45 @@
+---
+- hosts: web
+  become: yes
+  vars:
+    db_name: ChatApp
+    root_password: mysql_admin
+    db_user: chat_user
+    db_password: chatapp_admin
+  tasks:
+    - name: Install Ansible Module for Mysql
+      apt:
+        name: python3-pymysql
+        state: present
+    - name: Install MySQL
+      apt:
+        name: mysql-server
+        state: latest
+    - name: Start MySQL Service
+      service:
+        name: mysql
+        state: started
+    - name: Set MySQL Root Password
+      shell: |
+        mysql -u root <<EOF
+        ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '{{root_password}}';
+        FLUSH PRIVILEGES;
+        EOF
+      args:
+        executable: /bin/bash
+    - name: Create Database for ChatApp
+      mysql_db:
+        name: "{{db_name}}"
+        state: present
+        login_user: root
+        login_password: "{{root_password}}"
+    - name: Create a User
+      mysql_user:
+        login_user: root
+        login_password: "{{root_password}}"
+        name: "{{db_user}}"
+        host: "%"
+        state: present
+        password: "{{db_password}}"
+        priv: "{{db_name}}.*:ALL"
+        update_password: on_create
