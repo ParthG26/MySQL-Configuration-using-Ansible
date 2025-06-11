@@ -1,0 +1,2 @@
+[web]
+3.10.11.100 ansible_ssh_private_key_file=~/Terraform.pem
